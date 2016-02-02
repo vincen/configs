@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- development/test environment settings. Remove this file, when delpoying 
+  the war in production environment. -->
+<!-- we divide the log into two different types, "system" and "business". -->
+<configuration>
+  <contextName>BedivereTestLog</contextName>
+  <property resource="settings.properties" />
+  <!-- stdout appender -->
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+
+  <!-- druid appender -->
+  <appender name="JDBCFILE"
+    class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${jdbcLogPath}</file>
+    <rollingPolicy
+      class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <fileNamePattern>${jdbcLogPath}/jdbc-%i.log</fileNamePattern>
+      <minIndex>1</minIndex>
+      <maxIndex>3</maxIndex>
+    </rollingPolicy>
+    <triggeringPolicy
+      class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <maxFileSize>3MB</maxFileSize>
+    </triggeringPolicy>
+    <encoder>
+      <pattern>%date %-4relative [%thread] %logger{10} - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+
+  <!-- system file appender -->
+  <appender name="SYSTEMFILE"
+    class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${systemLogPath}</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${systemLogPath}/%d{yyyyMM}/system-%d{yyyy-MM-dd}.log.zip
+      </fileNamePattern>
+      <timeBasedFileNamingAndTriggeringPolicy
+        class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+        <maxFileSize>1MB</maxFileSize>
+      </timeBasedFileNamingAndTriggeringPolicy>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%date %-4relative [%thread] %.-1level %logger{36} -
+        %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- business log appender -->
+  <!-- <appender name="ORACLEDATABASE" class="ch.qos.logback.classic.db.DBAppender"> -->
+  <!-- <connectionSource class="ch.qos.logback.core.db.DataSourceConnectionSource"> -->
+  <!-- <dataSource class="com.jolbox.bonecp.BoneCPDataSource"> -->
+  <!-- <driverClass>${prod.jdbc.driver}</driverClass> -->
+  <!-- <jdbcUrl>${prod.jdbc.url}</jdbcUrl> -->
+  <!-- <username>${prod.jdbc.username}</username> -->
+  <!-- <password>${prod.jdbc.password}</password> -->
+  <!-- </dataSource> -->
+  <!-- </connectionSource> -->
+  <!-- </appender> -->
+
+  <!-- druid logger -->
+  <!-- <logger name="druid.sql" level="INFO" additivity="false"> -->
+  <!-- <appender-ref ref="STDOUT" /> -->
+  <!-- </logger> -->
+  <logger name="druid.sql.DataSource" level="DEBUG" additivity="false">
+    <appender-ref ref="JDBCFILE" />
+  </logger>
+  <logger name="druid.sql.Connection" level="DEBUG" additivity="false">
+    <appender-ref ref="JDBCFILE" />
+  </logger>
+  <logger name="druid.sql.Statement" level="DEBUG" additivity="false">
+    <appender-ref ref="JDBCFILE" />
+  </logger>
+  <logger name="druid.sql.ResultSet" level="DEBUG" additivity="false">
+    <appender-ref ref="JDBCFILE" />
+  </logger>
+
+  <!-- system file logger -->
+  <logger name="com.fuqssi" level="INFO" additivity="false">
+    <appender-ref ref="SYSTEMFILE" />
+  </logger>
+
+  <!-- business db logger -->
+  <!-- <logger name="com.supermap.castores.service" level="INFO" additivity="false"> -->
+  <!-- <appender-ref ref="ORACLEDATABASE"></appender-ref> -->
+  <!-- </logger> -->
+
+  <!-- these are filter the log, that produced from third-part jar -->
+  <logger name="org.springframework" level="WARN" />
+  <logger name="com.opensymphony" level="WARN" />
+  <logger name="org.apache" level="WARN" />
+
+
+</configuration>
