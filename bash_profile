@@ -1,10 +1,14 @@
-ANT_HOME=/Users/vincen/Programs/apache/apache-ant-1.9.6
-MAVEN_HOME=/Users/vincen/Programs/apache/apache-maven-3.3.3
+ANT_HOME=/Users/vincen/Programs/apache/apache-ant
+GOROOT=/usr/local/opt/go
+GRADLE_HOME=/Users/vincen/Programs/gradle
+GROOVY_HOME=/Users/vincen/Programs/apache/groovy
+MAVEN_HOME=/Users/vincen/Programs/apache/apache-maven
 MySQL_HOME=/usr/local/mysql
-GOROOT=/usr/local/opt/go/libexec
-PATH=$PATH:$MAVEN_HOME/bin:$MySQL_HOME/bin:$ANT_HOME/bin:$GOROOT/bin
+PATH=$PATH:$MAVEN_HOME/bin:$MySQL_HOME/bin:$ANT_HOME/bin:$GOROOT/bin:$GRADLE_HOME/bin:$GROOVY_HOME/bin:$GOPATH/bin
 
 export PATH
+
+export GOPATH=/Users/vincen/Projects/go-workspace
 
 alias ll='ls -al'
 alias rr='rm -rf'
