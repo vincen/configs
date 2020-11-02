@@ -5,11 +5,32 @@
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd">
+
   <!-- 设置session factory -->
-  <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <bean id="sessionFactory"
+    class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
     <property name="dataSource" ref="dataSource" />
-    <property name="mapperLocations"
-      value="classpath:com/fuqssi/bedivere/mapping/*.xml" />
+    <property name="packagesToScan">
+      <list>
+        <value>com.fuqssi.bedivere.domain</value>
+      </list>
+    </property>
+    <property name="hibernateProperties">
+      <props>
+        <prop key="hibernate.dialect">${dialect}</prop>
+        <prop key="hibernate.show_sql">${show_sql}</prop>
+        <prop key="hibernate.jdbc.fetch_size">${jdbc.fetch_size}</prop>
+        <prop key="hibernate.jdbc.batch_size">${jdbc.batch_size}</prop>
+        <prop
+          key="hibernate.cache.provider_configuration_file_resource_path">${cache.provider_configuration_file_resource_path}
+        </prop>
+        <prop key="hibernate.cache.region.factory_class">${cache.region.factory_class}</prop>
+        <prop key="hibernate.cache.use_query_cache">${cache.use_query_cache}</prop>
+        <prop key="hibernate.cache.use_second_level_cache">${cache.use_second_level_cache}</prop>
+        <prop key="hibernate.transaction.coordinator_class">${transaction.coordinator_class}</prop>
+        <prop key="hibernate.id.new_generator_mappings">${id.new_generator_mappings}</prop>
+      </props>
+    </property>
   </bean>
 
   <!-- 事物注解 -->
@@ -21,75 +42,49 @@
   </bean>
   <!-- 事物管理器 -->
   <bean id="transactionManager"
-    class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-    <property name="dataSource" ref="dataSource" />
-  </bean>
-  <!-- DAO接口所在包名，Spring会自动查找其下的类 -->
-  <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-    <property name="basePackage" value="com.fuqssi.bedivere.dao" />
-    <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+    class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+    <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
   <!-- 定义开发环境的配置 -->
   <beans profile="development">
-    <bean id="stat-filter" class="com.alibaba.druid.filter.stat.StatFilter">
-      <property name="slowSqlMillis" value="1000" />
-      <property name="logSlowSql" value="true" />
-      <property name="mergeSql" value="true" />
-    </bean>
-    <!-- 这个配置是<property name="filters" value="slf4j" />的具体化 -->
-    <!-- <bean id="log-filter" class="com.alibaba.druid.filter.logging.Slf4jLogFilter"> -->
-    <!-- <property name="resultSetLogEnabled" value="true" /> -->
-    <!-- <property name="statementExecutableSqlLogEnable" value="true" /> -->
-    <!-- </bean> -->
-    <bean id="wall-filter" class="com.alibaba.druid.wall.WallFilter" />
-    <!-- Druid configuration -->
-    <bean id="mainDataSource" class="com.alibaba.druid.pool.DruidDataSource"
-      init-method="init" destroy-method="close">
-      <property name="driverClassName" value="${dev.jdbc.driver}" />
-      <property name="url" value="${dev.jdbc.url}" />
+    <!-- BoneCP configuration -->
+    <bean id="mainDataSource" class="com.jolbox.bonecp.BoneCPDataSource"
+      destroy-method="close">
+      <property name="driverClass" value="${dev.jdbc.driver}" />
+      <property name="jdbcUrl" value="${dev.jdbc.url}" />
       <property name="username" value="${dev.jdbc.username}" />
       <property name="password" value="${dev.jdbc.password}" />
-      <property name="initialSize" value="1" />
-      <property name="minIdle" value="1" />
-      <property name="maxActive" value="2" />
-      <property name="useUnfairLock" value="true" />
-      <property name="maxWait" value="60000" />
-      <property name="timeBetweenEvictionRunsMillis" value="300000" />
       <property name="defaultAutoCommit" value="false" />
-      <property name="validationQuery" value="SELECT 'x'" />
-      <property name="filters" value="slf4j" />
-      <property name="timeBetweenLogStatsMillis" value="300000" />
-      <property name="removeAbandoned" value="true" />
-      <property name="removeAbandonedTimeout" value="1800" />
-      <property name="logAbandoned" value="true" />
-      <property name="proxyFilters">
-        <list>
-          <ref bean="stat-filter" />
-          <!-- <ref bean="log-filter" /> -->
-          <ref bean="wall-filter" />
-        </list>
-      </property>
+      <property name="idleConnectionTestPeriodInMinutes" value="60" />
+      <property name="idleMaxAgeInMinutes" value="240" />
+      <property name="maxConnectionsPerPartition" value="2" />
+      <property name="minConnectionsPerPartition" value="1" />
+      <property name="partitionCount" value="1" />
+      <property name="acquireIncrement" value="10" />
+      <property name="statementsCacheSize" value="50" />
+      <property name="releaseHelperThreads" value="3" />
     </bean>
   </beans>
 
   <!-- 定义生产环境的配置 -->
   <beans profile="production">
-    <!-- Druid configuration -->
-    <bean id="mainDataSource" class="com.alibaba.druid.pool.DruidDataSource"
-      init-method="init" destroy-method="close">
-      <property name="driverClassName" value="${prod.jdbc.driver}" />
-      <property name="url" value="${prod.jdbc.url}" />
+    <!-- BoneCP configuration -->
+    <bean id="mainDataSource" class="com.jolbox.bonecp.BoneCPDataSource"
+      destroy-method="close">
+      <property name="driverClass" value="${prod.jdbc.driver}" />
+      <property name="jdbcUrl" value="${prod.jdbc.url}" />
       <property name="username" value="${prod.jdbc.username}" />
       <property name="password" value="${prod.jdbc.password}" />
-      <property name="initialSize" value="3" />
-      <property name="minIdle" value="3" />
-      <property name="maxActive" value="15" />
-      <property name="useUnfairLock" value="true" />
-      <property name="maxWait" value="60000" />
-      <property name="timeBetweenEvictionRunsMillis" value="300000" />
       <property name="defaultAutoCommit" value="false" />
-      <property name="validationQuery" value="SELECT 'x'" />
+      <property name="idleConnectionTestPeriodInMinutes" value="60" />
+      <property name="idleMaxAgeInMinutes" value="240" />
+      <property name="maxConnectionsPerPartition" value="20" />
+      <property name="minConnectionsPerPartition" value="10" />
+      <property name="partitionCount" value="3" />
+      <property name="acquireIncrement" value="10" />
+      <property name="statementsCacheSize" value="50" />
+      <property name="releaseHelperThreads" value="3" />
     </bean>
   </beans>
 </beans>
